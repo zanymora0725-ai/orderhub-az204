@@ -1,9 +1,9 @@
-name: Build and Deploy to Azure Web App
+name: Build and deploy Node.js app to Azure Web App
 
 on:
   push:
-    branches: [ "main" ]
-  workflow_dispatch:
+    branches:
+      - main
 
 jobs:
   build:
@@ -16,26 +16,27 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '18'   # Node 20 está deprecated en GitHub Actions
 
       - name: Install dependencies
+        working-directory: src/api
         run: npm install
 
       - name: Build project
+        working-directory: src/api
         run: npm run build
 
       - name: Upload artifact for deployment
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: |
-            dist/
-            package.json
-            package-lock.json
-
+          path: src/api
+          
   deploy:
     runs-on: ubuntu-latest
     needs: build
+    environment:
+      name: production
 
     steps:
       - name: Download artifact from build job
@@ -44,8 +45,9 @@ jobs:
           name: node-app
 
       - name: Deploy to Azure Web App
-        uses: azure/webapps-deploy@v3
+        uses: azure/webapps-deploy@v2
         with:
           app-name: app-orderhub-api-mramos
+          slot-name: production
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE }}
           package: .
