@@ -1,5 +1,5 @@
 name: build and deploy Node.js app to Azure Web App
-
+# Trigger build
 on:
   push:
     branches:
